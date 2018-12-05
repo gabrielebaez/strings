@@ -1,4 +1,4 @@
-from blockchains.python.blockchain import Blockchain
+from blockchain import Blockchain
 from flask import Flask, jsonify, request
 from textwrap import dedent
 from uuid import uuid4

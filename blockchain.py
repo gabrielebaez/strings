@@ -129,7 +129,7 @@ class Blockchain:
             print(f'{block}')
             print('\n---------\n')
 
-            #check if the hash of the block  is correct
+            # check if the hash of the block  is correct
             if block['previous_hash'] != self.hash(last_block):
                 return False
 
