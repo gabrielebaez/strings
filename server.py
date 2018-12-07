@@ -1,8 +1,6 @@
-from blockchain import Blockchain
 from flask import Flask, jsonify, request
-from textwrap import dedent
+from blockchain import Blockchain
 from uuid import uuid4
-import json
 
 
 app = Flask(__name__)
