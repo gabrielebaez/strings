@@ -64,7 +64,7 @@ class Journal:
         for page in journal:
             hashes_a.append(page['previous_hash'])
             hashes_b.append(page['hash'])
-        hashes_b.insert(0, 1)
+        hashes_b.insert(0, 'none')
 
         for previous, current in zip(hashes_a, hashes_b):
             if previous != current:
