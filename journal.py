@@ -1,3 +1,4 @@
+from typing import Optional
 from time import time
 import hashlib
 import json
@@ -8,75 +9,66 @@ class Journal:
     def __init__(self):
         self.journal = []
         self.current_entries = []
-        self.nodes = set()
 
-        # Initial Journal page
-        self.new_page(previous_hash=1)
+        # First journal page
+        self.new_page(previous_hash='none')
 
-    def new_page(self, previous_hash=None):
-        """
-        Adds a new page to the journal.
-        :param previous_hash: (Optional) <str> Hash of previous page
-        :return: <dict> New Page
-        """
+    def new_page(self, previous_hash: Optional[str] = None) -> dict:
+        """Adds a new page to the journal."""
 
         page = {
             'index': len(self.journal) + 1,
             'timestamp': time(),
             'entries': self.current_entries,
             'previous_hash': previous_hash or self.last_page['hash'],
-            'hash': 1 if len(self.journal) < 1 else self.hash(self.current_entries)
         }
+
+        page['hash'] = self.hash(page)
 
         # reset current list of entries
         self.current_entries = []
         self.journal.append(page)
         return page
 
-    def new_entry(self, data):
+    def new_entry(self, data: dict) -> int:
         """
         Add data to a page.
 
-        :param data: <Dict>
-        :return: <int> The index of the Page that will hold this data
+        :param data:
+        :return: The index of the Page that will hold this data
         """
         self.current_entries.append(data)
         return self.last_page['index'] + 1
 
     @property
-    def last_page(self):
+    def last_page(self) -> int:
         return self.journal[-1]
 
     @staticmethod
-    def hash(page):
+    def hash(page: dict) -> str:
         """
         Creates a SHA-256 hash of a Page
         :param page: <dict> Page
-        :return: <str>
+        :return: hash
         """
         page_string = json.dumps(page, sort_keys=True).encode()
         return hashlib.sha256(page_string).hexdigest()
 
-    def valid_journal(self, journal):
-        """
-        Determine if a given journal is valid.
+    @staticmethod
+    def validate_journal(journal: list) -> bool:
+        """Determine if a given journal is valid."""
 
-        :param journal: <list>
-        :return: <bool> True if valid, False if not
-        """
+        hashes_a = []
+        hashes_b = []
 
-        last_page = journal[0]
-        current_index = 1
+        for page in journal:
+            hashes_a.append(page['previous_hash'])
+            hashes_b.append(page['hash'])
+        hashes_b.insert(0, 1)
 
-        while current_index < len(journal):
-            page = journal[current_index]
-
-            #check if the hash of the page is correct
-            if page['previous_hash'] != self.hash(last_page):
+        for previous, current in zip(hashes_a, hashes_b):
+            if previous != current:
                 return False
-
-            last_page = page
-            current_index += 1
 
         return True
 
@@ -84,13 +76,18 @@ class Journal:
 if __name__ == '__main__':
     j = Journal()
 
-    j.new_entry({'a': 1})
+    j.new_entry({'a': 1,'b': 1})
+    j.new_entry({'a': 1, 'b': 1})
+    j.new_entry({'c': 1, 'd': 1})
+    j.new_page()
+
+    j.new_entry({'a': 1,'b': 1})
     j.new_page()
 
     j.new_entry({'b': 1})
     j.new_page()
 
-    j.new_entry({'c': 1})
+    j.new_entry({'c': 1,'d': 1})
     j.new_page()
 
     j.new_entry({'d': 1})
@@ -100,3 +97,5 @@ if __name__ == '__main__':
         print(page)
 
     print(f"Journal len {len(j.journal)}")
+
+    print(f'Is a valid journal? {j.validate_journal(j.journal)}')
