@@ -1,17 +1,25 @@
 from typing import Optional
 from time import time
+import logging
 import hashlib
 import json
 
 
 class Journal:
 
-    def __init__(self):
+    def __init__(self, journal_name: Optional[str] = None) -> None:
         self.journal = []
         self.current_entries = []
+        self.metadata = {}
 
-        # First journal page
-        self.new_page(previous_hash='none')
+        if journal_name:
+            self.metadata['name'] = journal_name
+
+    def genesis(self):
+        """Generates the first page of a new Journal"""
+
+        if len(self.journal) == 0:
+            self.new_page(previous_hash='none')
 
     def new_page(self, previous_hash: Optional[str] = None) -> dict:
         """Adds a new page to the journal."""
@@ -37,8 +45,15 @@ class Journal:
         :param data:
         :return: The index of the Page that will hold this data
         """
-        self.current_entries.append(data)
-        return self.last_page['index'] + 1
+
+        try:
+            assert len(self.journal) > 0
+
+            self.current_entries.append(data)
+            return self.last_page['index'] + 1
+
+        except AssertionError:
+            logging.critical("Journal not initialized, try running the genesis function")
 
     @property
     def last_page(self) -> int:
@@ -74,9 +89,12 @@ class Journal:
 
 
 if __name__ == '__main__':
-    j = Journal()
+    j = Journal(journal_name="aaa")
 
-    j.new_entry({'a': 1,'b': 1})
+    print(j.metadata)
+    j.genesis()
+
+    j.new_entry({'a': 1, 'b': 1})
     j.new_entry({'a': 1, 'b': 1})
     j.new_entry({'c': 1, 'd': 1})
     j.new_page()
