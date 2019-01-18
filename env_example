@@ -1,0 +1,6 @@
+# Sophia configuration
+DB_LOCATION=
+DB_BACKUP_LOCATION=
+
+# Peer configuration
+
