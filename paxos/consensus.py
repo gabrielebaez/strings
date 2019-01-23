@@ -1,68 +1,7 @@
+from .every_import_ever import *
+
 # this is a work through the chapter "Cluster by consensus" from the book "500 lines or less"
 # and will be modify for the ledger.
-
-from dotenv import find_dotenv, load_dotenv
-from collections import namedtuple
-from .roles import *
-import itertools
-import functools
-import threading
-import queue
-import os
-
-load_dotenv(find_dotenv())
-
-# constants
-JOIN_RETRANSMIT = os.getenv("JOIN_RETRANSMIT")
-CATCHUP_INTERVAL = os.getenv('CATCHUP_INTERVAL')
-ACCEPT_RETRANSMIT = os.getenv('ACCEPT_RETRANSMIT')
-PREPARE_RETRANSMIT = os.getenv('PREPARE_RETRANSMIT')
-INVOKE_RETRANSMIT = os.getenv('INVOKE_RETRANSMIT')
-LEADER_TIMEOUT = os.getenv('LEADER_TIMEOUT')
-NULL_BALLOT = Ballot(-1, -1)  # sorts before all real ballots
-NOOP_PROPOSAL = Proposal(None, None, None)  # no-op to fill otherwise empty slots
-
-# All possible messages
-Accepted = namedtuple('Accepted', ['slot', 'ballot_num'])
-Accept = namedtuple('Accept', ['slot', 'ballot_num', 'proposal'])
-Decision = namedtuple('Decision', ['slot', 'proposal'])
-Invoked = namedtuple('Invoked', ['client_id', 'output'])
-Invoke = namedtuple('Invoke', ['caller', 'client_id', 'input_value'])
-Join = namedtuple('Join', [])
-Active = namedtuple('Active', [])
-Prepare = namedtuple('Prepare', ['ballot_num'])
-Promise = namedtuple('Promise', ['ballot_num', 'accepted_proposals'])
-Propose = namedtuple('Propose', ['slot', 'proposal'])
-Welcome = namedtuple('Welcome', ['state', 'slot', 'decisions'])
-Decided = namedtuple('Decided', ['slot'])
-Preempted = namedtuple('Preempted', ['slot', 'preempted_by'])
-Adopted = namedtuple('Adopted', ['ballot_num', 'accepted_proposals'])
-Accepting = namedtuple('Accepting', ['leader'])
-
-# protocol description
-Proposal = namedtuple('Proposal', ['caller', 'client_id', 'input'])
-Ballot = namedtuple('Ballot', ['n', 'leader'])
-
-# To encourage testability and keep the code readable,
-# we break Cluster down into a handful of classes corresponding to the roles described in the protocol.
-# Each is a subclass of Role
-
-
-class Role:
-
-    def __init__(self, node):
-        self.node = node
-        self.node.register(self)
-        self.running = True
-        self.logger = node.logger.getChild(type(self).__name__)
-
-    def set_timer(self, seconds, callback):
-        return self.node.network.set_timer(self.node.address, seconds,
-                                           lambda: self.running and callback())
-
-    def stop(self):
-        self.running = False
-        self.node.unregister(self)
 
 # The roles that a cluster node has are glued together by the Node class, which represents a single node on the network.
 # Roles are added to and removed from the node as execution proceeds.
